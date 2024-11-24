@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Train Seat Reservation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .seats {
+      display: grid;
+      grid-template-columns: repeat(7, 40px);
+      gap: 10px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .seat {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      line-height: 40px;
+      border: 1px solid #999;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .available {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .booked {
+      background-color: #dc3545;
+      color: white;
+      cursor: not-allowed;
+    }
+
+    .last-row {
+      grid-column: span 3;
+    }
+
+    #message {
+      margin-top: 20px;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Train Seat Reservation</h1>
+
+  <div id="coach" class="seats"></div>
+
+  <div>
+    <input id="seatCount" type="number" min="1" max="7" placeholder="Number of seats" />
+    <button onclick="reserveSeats()">Reserve Seats</button>
+  </div>
+
+  <p id="message"></p>
+
+  <script>
+    // Create the coach structure
+    const coach = [];
+    for (let i = 0; i < 11; i++) {
+      const row = [];
+      const seatsInRow = i === 10 ? 3 : 7; // Last row has only 3 seats
+      for (let j = 0; j < seatsInRow; j++) {
+        row.push({ seat: `${i + 1}${String.fromCharCode(65 + j)}`, status: 'available' });
+      }
+      coach.push(row);
+    }
+
+    const coachElement = document.getElementById('coach');
+
+    // Function to render seats
+    function renderSeats() {
+      coachElement.innerHTML = '';
+      coach.forEach((row, rowIndex) => {
+        row.forEach(seat => {
+          const seatElement = document.createElement('div');
+          seatElement.className = `seat ${seat.status} ${rowIndex === 10 ? 'last-row' : ''}`;
+          seatElement.textContent = seat.seat;
+          coachElement.appendChild(seatElement);
+        });
+      });
+    }
+
+    // Function to find and reserve seats
+    function reserveSeats() {
+      const seatCount = parseInt(document.getElementById('seatCount').value);
+      const message = document.getElementById('message');
+      if (!seatCount || seatCount < 1 || seatCount > 7) {
+        message.textContent = 'Please enter a number between 1 and 7.';
+        return;
+      }
+
+      let bookedSeats = [];
+      for (let row of coach) {
+        const availableSeats = row.filter(seat => seat.status === 'available');
+        if (availableSeats.length >= seatCount) {
+          bookedSeats = availableSeats.slice(0, seatCount);
+          break;
+        }
+      }
+
+      if (bookedSeats.length === 0) {
+        const allAvailableSeats = coach.flat().filter(seat => seat.status === 'available');
+        if (allAvailableSeats.length >= seatCount) {
+          bookedSeats = allAvailableSeats.slice(0, seatCount);
+        }
+      }
+
+      if (bookedSeats.length === seatCount) {
+        bookedSeats.forEach(seat => (seat.status = 'booked'));
+        renderSeats();
+        message.textContent = `Successfully reserved seats: ${bookedSeats.map(s => s.seat).join(', ')}`;
+      } else {
+        message.textContent = 'Not enough seats available.';
+      }
+    }
+
+    // Initial rendering
+    renderSeats();
+  </script>
+</body>
+</html>
